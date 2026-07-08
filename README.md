@@ -68,8 +68,9 @@ Beads is the interface between autonomous runs and humans: an async run's output
 | `hooks/pre_tool.py`, `hooks/post_edit.py`, `hooks/stop_gate.py`, `hooks/session_start.py` | Marker-gated hook entry points — no-ops outside launched repos |
 | `hooks/keepalive.py` | Restart wrapper: resume a run after crashes or usage-limit exhaustion (`claude --continue` + backoff) |
 | `hooks/launch.py` | Per-repo activation: marker + CLAUDE.md defaults (idempotent) |
-| `hooks/audit.py` | Rule registry: 11 pattern checks, `--list` / `--only` / `--skip`, exit 2 on errors |
-| `hooks/build_index.py` | Generates `SYMBOLS.md` — one line per function/class, can't rot |
+| `hooks/audit.py` | Rule registry: 12 pattern checks, `--list` / `--only` / `--skip`, exit 2 on errors |
+| `hooks/build_index.py` | Generates `SYMBOLS.md` (symbols + docstrings) and `CALLERS.md` (who-calls-what) — can't rot |
+| `ARCHITECTURE.md` | Short model-maintained map of the system's shape and data flow |
 | `hooks/check_duplicates.py` | Gate: duplicate module-level names or copy-pasted bodies |
 | `CLAUDE-global.md` | Design defaults appended to each launched repo's CLAUDE.md (`{FABLE}` resolves to the plugin path) |
 | `patterns/*.md` | The judgment layer: code patterns, antipatterns, orientation, task intake, worktrees, cleanup protocol, ingestion protocol + AI-slop taxonomy, beads hygiene, research strategy, orchestration |
@@ -80,4 +81,4 @@ Beads is the interface between autonomous runs and humans: an async run's output
 - Add a procedure: new `skills/<name>/SKILL.md` whose description states its triggers and development-process stage.
 - Ship to the company: push here; each machine runs `/plugin update fable-os`.
 
-Design decisions locked in: instructions + hard gates, Python-first with portable principles, generated index + short model-maintained `ARCHITECTURE.md`, one test + lint per non-trivial change, beads as the single source of work-state truth, per-repo opt-in via marker.
+Design decisions locked in: instructions + hard gates, Python-first with portable principles, generated maps (`SYMBOLS.md` + `CALLERS.md`) + short model-maintained `ARCHITECTURE.md`, docstrings enforced so the index describes not just names, one test + lint per non-trivial change, beads as the single source of work-state truth, per-repo opt-in via marker.

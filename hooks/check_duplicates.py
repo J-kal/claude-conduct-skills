@@ -22,6 +22,7 @@ def body_fingerprint(node: ast.AST) -> str:
 
 
 def collect(root: Path):
+    """Index module-level functions by name and by normalized body fingerprint for dup detection."""
     by_name: dict[str, list[str]] = defaultdict(list)
     by_body: dict[str, list[str]] = defaultdict(list)
     for py in sorted(root.rglob("*.py")):

@@ -26,6 +26,7 @@ PIP_LOCAL_RE = re.compile(r"\s-[re]\b|\s\.\s*$")  # -r reqs / -e editable / curr
 
 
 def is_dep_install(cmd: str) -> bool:
+    """True if cmd installs a NEW dependency, not a lockfile/editable/local install."""
     if PIP_RE.search(cmd) and not PIP_LOCAL_RE.search(cmd):
         return True
     return bool(ADD_DEP_RE.search(cmd))
@@ -51,6 +52,7 @@ def duplicate_defs(content: str, file_path: Path, root: Path) -> list[str]:
 
 
 def deny(msg: str) -> None:
+    """Emit msg to stderr and exit 2 — the PreToolUse 'deny' signal."""
     print(msg, file=sys.stderr)
     sys.exit(2)
 

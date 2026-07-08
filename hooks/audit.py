@@ -46,6 +46,7 @@ class PyFile:
 
 
 def rule(rule_id: str, description: str, severity: str = "error"):
+    """Decorator: register a check function in RULES under rule_id."""
     def register(fn):
         RULES[rule_id] = (description, severity, fn)
         return fn
@@ -220,9 +221,26 @@ def r_stale_worktree(files, root):
             yield f".claude/worktrees/{entry.name}", 0, "leftover worktree — land or remove it (git worktree remove + prune)"
 
 
+@rule("missing-docstring", "Public module-level functions carry a one-line docstring (feeds SYMBOLS.md)", severity="warn")
+def r_missing_docstring(files, root):
+    # decorated functions are exempt: their purpose lives in the decorator (e.g. @rule's description),
+    # so a docstring would just restate it — the comment-noise antipattern.
+    for f in files:
+        if f.is_test:
+            continue
+        for node in f.tree.body:  # module-level only; methods/closures don't feed the index
+            if (isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef))
+                    and not node.decorator_list
+                    and not node.name.startswith("_")
+                    and node.name not in EXEMPT_NAMES
+                    and ast.get_docstring(node) is None):
+                yield f.rel, node.lineno, f"'{node.name}' has no docstring — one line so the index describes it, not just names it"
+
+
 # ------------------------------------------------------------- runner --
 
 def load_files(root: Path) -> list[PyFile]:
+    """Parse every non-skipped .py under root into PyFile records; unparseable files are dropped."""
     out = []
     for py in sorted(root.rglob("*.py")):
         if any(part in SKIP_DIRS for part in py.parts):

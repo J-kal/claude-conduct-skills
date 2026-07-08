@@ -24,6 +24,7 @@ RESUME_PROMPT = ("You were interrupted (crash or usage limit). Re-orient from be
 
 
 def attempt(cmd: list[str]) -> tuple[int, bool]:
+    """Run cmd, stream its output, and return (exit code, whether output looks like a usage/rate limit)."""
     res = subprocess.run(cmd, capture_output=True, text=True)
     sys.stdout.write(res.stdout)
     sys.stderr.write(res.stderr)

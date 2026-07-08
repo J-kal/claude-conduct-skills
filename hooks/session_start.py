@@ -15,6 +15,7 @@ HERE = Path(__file__).parent
 
 
 def beads_snapshot(root: Path) -> list[str]:
+    """One summary line per non-empty beads status (in_progress, open); empty if bd is absent."""
     if not shutil.which("bd"):
         return []
     lines = []

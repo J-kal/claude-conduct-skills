@@ -37,6 +37,7 @@ Diff:
 
 
 def dangling_beads(root: Path) -> list[str]:
+    """Findings for any bead left in_progress at turn end; empty if bd is absent or all clear."""
     if not shutil.which("bd"):
         return []
     try:
@@ -53,6 +54,7 @@ def dangling_beads(root: Path) -> list[str]:
 
 
 def llm_review(root: Path) -> list[str]:
+    """Run a narrow claude -p judgment review of the working diff; findings, or empty on OK/unavailable."""
     claude = shutil.which("claude")
     if not claude:
         return []
