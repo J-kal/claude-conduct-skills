@@ -51,3 +51,6 @@ See `{FABLE}/patterns/research-strategy.md`: breadth-first sweep → prioritize 
 
 ## Subagents / orchestration
 See `{FABLE}/patterns/orchestration.md`: fan out only for independent work; every subagent prompt states the deliverable format; subagent output is data to verify, not truth to relay.
+
+## Model allocation (strict)
+Every delegated task runs on the smallest/cheapest model that can do it — escalate only on demonstrated failure, never preemptively. Full ladder in `{FABLE}/patterns/orchestration.md`: prefer deterministic code (no model) → Haiku-class for mechanical rubric/extraction/sweep work → Sonnet-class for cross-file judgment → Opus/Fable only for the hardest synthesis a smaller tier has actually failed. Split sweeps by difficulty (cheap workers find, one careful pass verifies), and state the model + why in every spawn. This plugin's own diff review runs on the smallest model by default (`review_model` in `.claude/fable.json`).

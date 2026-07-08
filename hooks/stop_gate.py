@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from config import audit_level, load_config  # noqa: E402
+from config import audit_level, load_config, review_model  # noqa: E402
 
 HERE = Path(__file__).parent
 
@@ -56,8 +56,8 @@ def dangling_beads(root: Path) -> list[str]:
             "or demote to open with a where-it-stands note (what's done, what's next, what's broken)."]
 
 
-def llm_review(root: Path) -> list[str]:
-    """Run a narrow claude -p judgment review of the working diff; findings, or empty on OK/unavailable."""
+def llm_review(root: Path, model: str) -> list[str]:
+    """Run a narrow claude -p judgment review of the working diff on the smallest capable model."""
     claude = shutil.which("claude")
     if not claude:
         return []
@@ -67,7 +67,7 @@ def llm_review(root: Path) -> list[str]:
     try:
         # cwd = temp dir: no fable.json marker there, so the inner session's hooks no-op
         # shortcut: untracked new files aren't in `git diff HEAD`; add --intent-to-add staging if that gap matters
-        res = subprocess.run([claude, "-p", JUDGMENT_PROMPT + diff[:20000]],
+        res = subprocess.run([claude, "--model", model, "-p", JUDGMENT_PROMPT + diff[:20000]],
                              capture_output=True, text=True, timeout=240,
                              cwd=tempfile.gettempdir())
     except (OSError, subprocess.TimeoutExpired):
@@ -103,7 +103,7 @@ def main() -> None:
     if not repeat and level != "light":
         problems.extend(dangling_beads(root))
         if level == "strict" or cfg.get("llm_review"):
-            problems.extend(llm_review(root))
+            problems.extend(llm_review(root, review_model(cfg)))
 
     if problems:
         print("\n\n".join(problems), file=sys.stderr)

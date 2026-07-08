@@ -18,6 +18,9 @@ from pathlib import Path
 
 LEVELS = ("light", "standard", "strict")
 DEFAULT_LEVEL = "standard"
+# The stop-gate diff review is narrow judgment on a bounded diff — the smallest model that
+# can do it. Bump to "sonnet" via fable.json "review_model" if the cheap tier misses things.
+DEFAULT_REVIEW_MODEL = "haiku"
 
 
 def load_config(root: Path):
@@ -35,3 +38,8 @@ def audit_level(cfg) -> str:
     """Resolve the active level: env FABLE_AUDIT_LEVEL > fable.json 'level' > default."""
     level = os.environ.get("FABLE_AUDIT_LEVEL") or (cfg or {}).get("level") or DEFAULT_LEVEL
     return level if level in LEVELS else DEFAULT_LEVEL
+
+
+def review_model(cfg) -> str:
+    """Model for the stop-gate diff review — the smallest that can do it (env > config > default)."""
+    return os.environ.get("FABLE_REVIEW_MODEL") or (cfg or {}).get("review_model") or DEFAULT_REVIEW_MODEL

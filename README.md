@@ -76,6 +76,12 @@ Errors always block at every level (the floor); levels only trade away the *advi
 
 `hooks/audit.py --level light` runs the same errors-only pass by hand.
 
+### Model allocation (strict guideline)
+
+Minimum-viable model is a design rule, not a preference: **every delegated task runs on the smallest tier that can do it**, escalating only on demonstrated failure. The ladder — deterministic code (no model) → Haiku-class for mechanical sweep/extract/rubric work → Sonnet-class for cross-file judgment → Opus/Fable only for the hardest synthesis — lives in `patterns/orchestration.md` and is restated in every launched repo's CLAUDE.md, so orchestrating models pick cheap by default and split sweeps into cheap-find + careful-verify.
+
+The one model call the plugin makes itself — the `strict` stop-gate diff review — obeys the same rule: it runs on `review_model` (default `haiku`; `FABLE_REVIEW_MODEL` env or `"review_model"` in `.claude/fable.json` to override). Headless skill runs should pass the smallest sufficient model too, e.g. `claude --model haiku -p "/cleanup"`.
+
 ## Contents
 
 | Path | What it is |

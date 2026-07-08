@@ -26,7 +26,7 @@ Two passes, in order:
 
 **2a. Mechanical (minutes):** `python hooks/audit.py` catches the checkable signatures — duplicates, single-impl abstractions, trivial wrappers, swallowed exceptions, gamed tests, long functions, bare TODOs, stale worktrees.
 
-**2b. Judgment sweep (the real work):** every module read in full by fresh eyes, hunting the AI-slop taxonomy below. Fan out one subagent per module cluster with non-overlapping scopes; each returns ledger-entry candidates in the exact format of Phase 3 (their output is data, not prose). The orchestrator dedups against the full set and verifies each candidate's file:line before it enters the ledger — a subagent claim is not a finding until checked.
+**2b. Judgment sweep (the real work):** every module read in full by fresh eyes, hunting the AI-slop taxonomy below. Fan out one subagent per module cluster with non-overlapping scopes, each on the **smallest model that fits** (orchestration.md's ladder): the per-module rubric-match pass is Haiku-class cheap-find work; the orchestrator's dedup and the file:line verification of load-bearing candidates escalate to a mid tier only where the judgment demands it. Each returns ledger-entry candidates in the exact format of Phase 3 (their output is data, not prose). A subagent claim is not a finding until the orchestrator verifies its file:line.
 
 ### The AI-slop taxonomy
 

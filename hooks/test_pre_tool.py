@@ -5,7 +5,7 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from config import audit_level, load_config  # noqa: E402
+from config import audit_level, load_config, review_model  # noqa: E402
 from pre_tool import duplicate_defs, is_dep_install  # noqa: E402
 
 
@@ -27,6 +27,17 @@ def test_audit_level():
             assert audit_level({}) == "light"
         finally:
             del os.environ["FABLE_AUDIT_LEVEL"]
+
+
+def test_review_model():
+    import os
+    assert review_model({}) == "haiku"  # smallest by default
+    assert review_model({"review_model": "sonnet"}) == "sonnet"  # config override
+    os.environ["FABLE_REVIEW_MODEL"] = "opus"
+    try:
+        assert review_model({"review_model": "sonnet"}) == "opus"  # env wins
+    finally:
+        del os.environ["FABLE_REVIEW_MODEL"]
 
 
 def test_dep_install_detection():
@@ -63,4 +74,5 @@ if __name__ == "__main__":
     test_dep_install_detection()
     test_duplicate_def_detection()
     test_audit_level()
+    test_review_model()
     print("test_pre_tool: all checks passed")

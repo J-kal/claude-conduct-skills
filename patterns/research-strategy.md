@@ -27,7 +27,7 @@ Define "sufficient evidence" before starting — e.g., "two independent authorit
 
 - Scale to the question: a simple fact-find is 1 agent and a handful of searches; only genuinely multi-angle questions justify parallel subagents.
 - Parallel angles must be non-overlapping and labeled ("you own X; do not cover Y").
-- Each subagent prompt states: objective, output format, and effort bound.
+- Each subagent prompt states: objective, output format, effort bound, and **model** — the smallest that fits the task (see orchestration.md's ladder). Sweep/search/extract workers are Haiku-class; reserve larger tiers for synthesis and adversarial verification of load-bearing claims.
 - The orchestrator synthesizes; it does not re-search what subagents already covered.
 
 ## Output
