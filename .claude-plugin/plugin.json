@@ -1,6 +1,6 @@
 {
   "name": "fable-os",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Operating system for AI-driven codebases: deterministic quality gates (audit, dedup, symbol index), five lifecycle skills (launch-env, ingest, intake, cleanup, debt), and beads-based honest task accounting. Hooks activate only in repos launched via the launch-env skill.",
   "author": {
     "name": "jkalinovskiy",

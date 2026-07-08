@@ -46,9 +46,15 @@ Typical lifecycle: **launch-env** once → **ingest** if the repo predates the p
 
 Three tiers, most-automatic first:
 
-1. **Every turn (hooks, deterministic):** in launched repos, ruff auto-fix after each edit (`post_edit.py`) and a blocking audit + index rebuild at turn end (`stop_gate.py`). No model discretion involved.
-2. **On demand (skills):** any tier-1 failure or human trigger invokes the skill by name.
-3. **Async/scheduled (headless):** `claude -p "/cleanup"` or `claude -p "/debt"` from cron, CI, or a Claude Code scheduled routine. Safe to automate because both are bounded by design: cleanup is behavior-preserving with hard limits and evidence-gated closes; debt changes no code. Findings needing judgment land as beads for a human instead of being auto-resolved.
+1. **Every turn (hooks, deterministic):** in launched repos —
+   - `session_start.py` re-injects repo state (audit summary + open/in-progress beads) at session start, after `/clear`, and after compaction, so rules and work-state survive context loss.
+   - `pre_tool.py` blocks violations *before* they land: unapproved dependency installs, regenerating an existing `.py` instead of editing, and new functions duplicating a name already in `SYMBOLS.md`.
+   - `post_edit.py` ruff-auto-fixes after each edit, then feeds error-severity audit findings straight back to the model while the context is hot.
+   - `stop_gate.py` blocks turn-end until the audit passes and no bead is left `in_progress` (finish or demote with a note); rebuilds the index each turn.
+2. **Per turn, judgment (opt-in):** set `"llm_review": true` in `.claude/fable.json` and the stop gate also runs a narrow `claude -p` review of the working diff for the un-mechanizable rules (smallest diff, symptom patches, speculative abstraction, new deps). Adds latency and token cost per turn — enable it only where it's worth it.
+3. **On demand (skills):** any tier-1 failure or human trigger invokes the skill by name.
+4. **Async/scheduled (headless):** `claude -p "/cleanup"` or `claude -p "/debt"` from cron, CI, or a Claude Code scheduled routine. Safe to automate because both are bounded by design: cleanup is behavior-preserving with hard limits and evidence-gated closes; debt changes no code. Findings needing judgment land as beads for a human instead of being auto-resolved.
+   - Crash/limit resilience: wrap any run in `python <plugin>/hooks/keepalive.py "/cleanup"` — on a crash or usage-limit exit it waits (30 min for limits, backoff for crashes) and resumes the same conversation with `claude --continue`; beads + the SessionStart hook re-orient the resumed session. Run it with no prompt to resume the last session after an interactive one dies.
 
 Beads is the interface between autonomous runs and humans: an async run's output is opened/closed issues with evidence notes — queryable via `bd ready` / `bd list` — not chat that scrolls away.
 
@@ -58,8 +64,9 @@ Beads is the interface between autonomous runs and humans: an async run's output
 |---|---|
 | `.claude-plugin/plugin.json`, `marketplace.json` | Plugin manifest + marketplace listing (this repo is both) |
 | `skills/{launch-env,ingest,intake,cleanup,debt}/SKILL.md` | The five procedures, each with when-to-use triggers in its description |
-| `hooks/hooks.json` | Plugin hook wiring (PostToolUse lint, Stop audit gate) via `${CLAUDE_PLUGIN_ROOT}` |
-| `hooks/stop_gate.py`, `hooks/post_edit.py` | Marker-gated hook entry points — no-ops outside launched repos |
+| `hooks/hooks.json` | Plugin hook wiring (PreToolUse gate, PostToolUse lint+audit, Stop gate, SessionStart state) via `${CLAUDE_PLUGIN_ROOT}` |
+| `hooks/pre_tool.py`, `hooks/post_edit.py`, `hooks/stop_gate.py`, `hooks/session_start.py` | Marker-gated hook entry points — no-ops outside launched repos |
+| `hooks/keepalive.py` | Restart wrapper: resume a run after crashes or usage-limit exhaustion (`claude --continue` + backoff) |
 | `hooks/launch.py` | Per-repo activation: marker + CLAUDE.md defaults (idempotent) |
 | `hooks/audit.py` | Rule registry: 11 pattern checks, `--list` / `--only` / `--skip`, exit 2 on errors |
 | `hooks/build_index.py` | Generates `SYMBOLS.md` — one line per function/class, can't rot |
