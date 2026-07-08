@@ -1,0 +1,14 @@
+{
+  "name": "fable",
+  "owner": {
+    "name": "jkalinovskiy",
+    "email": "jkalinovskiy@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "fable-os",
+      "source": "./",
+      "description": "Design-spec operating system: quality gates, lifecycle skills, beads task accounting."
+    }
+  ]
+}

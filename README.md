@@ -1,0 +1,76 @@
+# fable-os
+
+A Claude Code plugin that acts as an operating system for AI-driven codebases: deterministic quality gates, five lifecycle skills, pattern docs models follow, and beads-based honest task accounting. Install it once at user level; activate it per repo with one command.
+
+Two layers, because instructions are advisory and hooks are deterministic:
+
+- **Instructions** (`CLAUDE-global.md`, `patterns/`) tell the model how to work.
+- **Gates** (`hooks/`) block output that breaks the rules anyway.
+
+## Install (once, any machine)
+
+From GitHub:
+
+```
+/plugin marketplace add J-kal/claude-conduct-skills
+/plugin install fable-os@fable
+```
+
+Or from a local clone: `/plugin marketplace add <path-to-this-folder>` then install the same way. Updating everywhere = `git push` here, `/plugin update fable-os` there (or re-add the marketplace) — nothing is copied into repos, so every environment tracks the same version.
+
+## Activate (once per repo)
+
+In any folder, say **"launch env"** (the launch-env skill), or run its mechanical step directly:
+
+```
+python "<plugin-root>/hooks/launch.py"
+```
+
+This writes `.claude/fable.json` — the opt-in marker. **The plugin's hooks no-op in folders without the marker**, so installing user-wide is safe; only launched repos get gated. The skill then finishes the judgment steps: `bd init`, baseline audit, tracker seeding, and appends the design defaults (with resolved plugin paths) to the repo's CLAUDE.md.
+
+## The skills — what to trigger, when
+
+Each SKILL.md description tells future models when to reach for it; this table is the human map. "Rated for" = the development-process stage each is designed for.
+
+| Skill | Rated for | What it does |
+|---|---|---|
+| **launch-env** | New repo/environment adoption (once, idempotent) | Marker + CLAUDE.md defaults + beads init + baseline audit + tracker seeding |
+| **ingest** | Taking over existing/inherited AI-generated code | Sweep against the AI-slop taxonomy → REWRITE_PLAN.md ledger + beads mirror. Writes no code |
+| **intake** | Start of any non-trivial task | Batched priority questions, five-line task definition, tracking bead |
+| **cleanup** | After merges, after big AI changes land, failing audit, pre-release | Fix audit errors rule-by-rule, judge warnings, verify, sync beads. Behavior-preserving, net-negative lines |
+| **debt** | End of significant sessions; weekly; before planning | Two-way reconcile: `# shortcut:` comments + audit warnings ↔ beads; verify every claimed status against reality |
+
+Typical lifecycle: **launch-env** once → **ingest** if the repo predates the plugin → **intake** per task → **cleanup** after things land → **debt** on cadence.
+
+## Pseudo-independent operation
+
+Three tiers, most-automatic first:
+
+1. **Every turn (hooks, deterministic):** in launched repos, ruff auto-fix after each edit (`post_edit.py`) and a blocking audit + index rebuild at turn end (`stop_gate.py`). No model discretion involved.
+2. **On demand (skills):** any tier-1 failure or human trigger invokes the skill by name.
+3. **Async/scheduled (headless):** `claude -p "/cleanup"` or `claude -p "/debt"` from cron, CI, or a Claude Code scheduled routine. Safe to automate because both are bounded by design: cleanup is behavior-preserving with hard limits and evidence-gated closes; debt changes no code. Findings needing judgment land as beads for a human instead of being auto-resolved.
+
+Beads is the interface between autonomous runs and humans: an async run's output is opened/closed issues with evidence notes — queryable via `bd ready` / `bd list` — not chat that scrolls away.
+
+## Contents
+
+| Path | What it is |
+|---|---|
+| `.claude-plugin/plugin.json`, `marketplace.json` | Plugin manifest + marketplace listing (this repo is both) |
+| `skills/{launch-env,ingest,intake,cleanup,debt}/SKILL.md` | The five procedures, each with when-to-use triggers in its description |
+| `hooks/hooks.json` | Plugin hook wiring (PostToolUse lint, Stop audit gate) via `${CLAUDE_PLUGIN_ROOT}` |
+| `hooks/stop_gate.py`, `hooks/post_edit.py` | Marker-gated hook entry points — no-ops outside launched repos |
+| `hooks/launch.py` | Per-repo activation: marker + CLAUDE.md defaults (idempotent) |
+| `hooks/audit.py` | Rule registry: 11 pattern checks, `--list` / `--only` / `--skip`, exit 2 on errors |
+| `hooks/build_index.py` | Generates `SYMBOLS.md` — one line per function/class, can't rot |
+| `hooks/check_duplicates.py` | Gate: duplicate module-level names or copy-pasted bodies |
+| `CLAUDE-global.md` | Design defaults appended to each launched repo's CLAUDE.md (`{FABLE}` resolves to the plugin path) |
+| `patterns/*.md` | The judgment layer: code patterns, antipatterns, orientation, task intake, worktrees, cleanup protocol, ingestion protocol + AI-slop taxonomy, beads hygiene, research strategy, orchestration |
+
+## Evolving the system
+
+- Add an enforcement pattern: one `@rule(...)` function in `hooks/audit.py` (start `warn`, promote to `error` after a clean cycle proves the signal). Remove: delete it. Identify: `--list`.
+- Add a procedure: new `skills/<name>/SKILL.md` whose description states its triggers and development-process stage.
+- Ship to the company: push here; each machine runs `/plugin update fable-os`.
+
+Design decisions locked in: instructions + hard gates, Python-first with portable principles, generated index + short model-maintained `ARCHITECTURE.md`, one test + lint per non-trivial change, beads as the single source of work-state truth, per-repo opt-in via marker.
