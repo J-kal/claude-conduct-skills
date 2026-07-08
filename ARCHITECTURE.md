@@ -10,8 +10,10 @@ script a Claude Code hook runs.
 One marker file, written into a target repo by `hooks/launch.py`, decides everything.
 Every hook's first act is to check for it in the cwd; without it they exit 0 (no-op).
 That is why the plugin is safe to install user-wide — it only acts in repos that opted
-in. The file also records `plugin_root` so skills can resolve gate paths, and holds
-opt-in flags (e.g. `llm_review`).
+in. The file also records `plugin_root` so skills can resolve gate paths, and a `level`
+(light | standard | strict) that scales how much the hooks do. `hooks/config.py` is the
+one place that reads the marker and resolves the level (env `FABLE_AUDIT_LEVEL` >
+`fable.json` > default), so every hook agrees on both.
 
 ## Hook lifecycle (launched repos only)
 

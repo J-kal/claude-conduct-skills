@@ -10,13 +10,17 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent))
+from config import audit_level, load_config  # noqa: E402
+
 HERE = Path(__file__).parent
 FAST_RULES = "duplicate-function,bare-except,unmarked-shortcut,weakened-test"
 
 
 def main() -> None:
     root = Path.cwd()
-    if not (root / ".claude" / "fable.json").exists():
+    cfg = load_config(root)
+    if cfg is None:
         return
     if shutil.which("ruff"):
         cmd = ["ruff", "check", "--fix", "--quiet", "."]
@@ -30,6 +34,8 @@ def main() -> None:
         except (OSError, subprocess.TimeoutExpired) as e:
             # lint is best-effort; only audit findings below may exit 2
             print(f"post_edit: ruff skipped ({e})", file=sys.stderr)
+    if audit_level(cfg) == "light":
+        return  # light: lint only — defer the audit to the turn-end stop gate
     try:
         audit = subprocess.run(
             [sys.executable, str(HERE / "audit.py"), str(root), "--only", FAST_RULES],

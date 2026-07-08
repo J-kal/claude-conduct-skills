@@ -32,6 +32,7 @@ Use poetry to set up and isolate every project. `poetry add` for dependencies, `
 - `python "{FABLE}/hooks/check_duplicates.py"` must pass (no duplicate function names or bodies).
 - Regenerate `SYMBOLS.md` after adding/removing/moving functions; update `ARCHITECTURE.md` (keep it under 60 lines) only when system shape changes.
 - Report only what was verified, with command output. Tests unrun = say unrun; failed = paste the failure. Never weaken a test to make it pass — a wrong test gets flagged, not gamed.
+- Gate cost is tunable via the audit level (light | standard | strict) in `.claude/fable.json` or `FABLE_AUDIT_LEVEL`. Error rules block at every level; lower levels only drop advisory/token-costly work. Use `light` for cheap mechanical sessions, `strict` when a diff warrants the LLM review.
 
 ## Task accounting (beads)
 The `bd` tracker is the source of truth for work state; keep it honest (`{FABLE}/patterns/beads-hygiene.md`). Every non-trivial task, every discovered bug (`--labels bug`, with repro), every deliberate shortcut (`# shortcut(<bead-id>):` in code + `shortcut-debt` bead), every delayed feature (`--status deferred`, with a revival trigger). `in_progress` only while actively worked — at session end, finish it or demote to open with a where-it-stands note. Close only with evidence (`bd close <id> --reason "<verification output>"`). Dedup before creating (`bd search`). Fixed label vocabulary: bug, feature, shortcut-debt, rewrite, chore.

@@ -6,10 +6,10 @@ launch-env skill, so the plugin's hooks never fire in unrelated folders.
 Exit 2 (blocking) with the findings on stderr when any gate fails.
 
 Gates, in order:
-1. Mechanical audit (error-severity rules).
-2. Beads honesty: no bead left in_progress at turn end — finish it or demote with a note.
-3. Optional LLM judgment review of the working diff — opt in per repo with
-   "llm_review": true in .claude/fable.json (adds latency + token cost per turn).
+1. Mechanical audit (error-severity rules). Every level.
+2. Beads honesty: no bead left in_progress at turn end. standard + strict.
+3. LLM judgment review of the working diff (adds latency + token cost per turn).
+   strict level, or legacy "llm_review": true in .claude/fable.json.
 
 Gates 2 and 3 skip when stop_hook_active (the turn already continued from this hook)
 so a converging fix loop can't nag or re-bill.
@@ -20,6 +20,9 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from config import audit_level, load_config  # noqa: E402
 
 HERE = Path(__file__).parent
 
@@ -77,8 +80,10 @@ def llm_review(root: Path) -> list[str]:
 
 def main() -> None:
     root = Path.cwd()
-    if not (root / ".claude" / "fable.json").exists():
+    cfg = load_config(root)
+    if cfg is None:
         return
+    level = audit_level(cfg)
     try:
         hook_input = json.loads(sys.stdin.read().lstrip("\ufeff") or "{}")
     except (json.JSONDecodeError, OSError):
@@ -88,20 +93,16 @@ def main() -> None:
     # index first so a fresh repo can't deadlock on stale-index
     subprocess.run([sys.executable, str(HERE / "build_index.py"), str(root)], capture_output=True)
     problems = []
+    # errors-only at every level: warns never block, so computing them here just burns time
     audit = subprocess.run(
-        [sys.executable, str(HERE / "audit.py"), str(root),
-         "--skip", "long-function,print-in-library,single-impl-abstraction,trivial-wrapper,dead-function,stale-worktree"],
+        [sys.executable, str(HERE / "audit.py"), str(root), "--level", "light"],
         capture_output=True, text=True)
     if audit.returncode != 0:
         problems.append(audit.stdout + audit.stderr)
 
-    if not repeat:
+    if not repeat and level != "light":
         problems.extend(dangling_beads(root))
-        try:
-            cfg = json.loads((root / ".claude" / "fable.json").read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError):
-            cfg = {}
-        if cfg.get("llm_review"):
+        if level == "strict" or cfg.get("llm_review"):
             problems.extend(llm_review(root))
 
     if problems:

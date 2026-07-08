@@ -11,6 +11,9 @@ import subprocess
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).parent))
+from config import audit_level, load_config  # noqa: E402
+
 HERE = Path(__file__).parent
 
 
@@ -34,15 +37,18 @@ def beads_snapshot(root: Path) -> list[str]:
 
 def main() -> None:
     root = Path.cwd()
-    if not (root / ".claude" / "fable.json").exists():
+    cfg = load_config(root)
+    if cfg is None:
         return
-    audit = subprocess.run([sys.executable, str(HERE / "audit.py"), str(root)],
+    level = audit_level(cfg)
+    audit = subprocess.run([sys.executable, str(HERE / "audit.py"), str(root), "--level", level],
                            capture_output=True, text=True)
     summary = audit.stdout.strip().splitlines()[-1] if audit.stdout.strip() else "audit produced no output"
-    lines = [f"fable-os state: {summary}"]
+    lines = [f"fable-os state ({level}): {summary}"]
     if audit.returncode != 0:
         lines.append("Audit has error-severity findings; the stop gate will block turn-end until they are fixed.")
-    lines.extend(beads_snapshot(root))
+    if level != "light":  # light skips the bd subprocess calls
+        lines.extend(beads_snapshot(root))
     print("\n".join(lines))
 
 

@@ -4,19 +4,21 @@ Regenerate: `python hooks/build_index.py`
 Who references each function (crude name match). Read this to state blast radius before editing.
 
 - `attempt` — defined at hooks/keepalive.py:26 — called by: hooks/keepalive.py:46
-- `beads_snapshot` — defined at hooks/session_start.py:17 — called by: hooks/session_start.py:45
+- `audit_level` — defined at hooks/config.py:34 — called by: hooks/post_edit.py:37, hooks/session_start.py:43, hooks/stop_gate.py:86, hooks/test_pre_tool.py:19, hooks/test_pre_tool.py:21, hooks/test_pre_tool.py:23, hooks/test_pre_tool.py:26, hooks/test_pre_tool.py:27
+- `beads_snapshot` — defined at hooks/session_start.py:20 — called by: hooks/session_start.py:51
 - `body_fingerprint` — defined at hooks/check_duplicates.py:18 — called by: hooks/check_duplicates.py:45
 - `caller_lines` — defined at hooks/build_index.py:46 — called by: hooks/build_index.py:83
 - `collect` — defined at hooks/check_duplicates.py:24 — called by: hooks/check_duplicates.py:51
-- `dangling_beads` — defined at hooks/stop_gate.py:39 — called by: hooks/stop_gate.py:99
-- `deny` — defined at hooks/pre_tool.py:54 — called by: hooks/pre_tool.py:74, hooks/pre_tool.py:85, hooks/pre_tool.py:91
-- `duplicate_defs` — defined at hooks/pre_tool.py:35 — called by: hooks/pre_tool.py:89, hooks/test_pre_tool.py:32, hooks/test_pre_tool.py:34, hooks/test_pre_tool.py:36, hooks/test_pre_tool.py:38
+- `dangling_beads` — defined at hooks/stop_gate.py:42 — called by: hooks/stop_gate.py:104
+- `deny` — defined at hooks/pre_tool.py:55 — called by: hooks/pre_tool.py:75, hooks/pre_tool.py:86, hooks/pre_tool.py:92
+- `duplicate_defs` — defined at hooks/pre_tool.py:36 — called by: hooks/pre_tool.py:90, hooks/test_pre_tool.py:53, hooks/test_pre_tool.py:55, hooks/test_pre_tool.py:57, hooks/test_pre_tool.py:59
 - `first_line` — defined at hooks/build_index.py:18 — called by: hooks/build_index.py:40, hooks/build_index.py:42
 - `index_lines` — defined at hooks/build_index.py:34 — called by: hooks/build_index.py:77
-- `is_dep_install` — defined at hooks/pre_tool.py:28 — called by: hooks/pre_tool.py:73, hooks/test_pre_tool.py:12, hooks/test_pre_tool.py:13, hooks/test_pre_tool.py:14, hooks/test_pre_tool.py:15, hooks/test_pre_tool.py:16, hooks/test_pre_tool.py:17, hooks/test_pre_tool.py:18, hooks/test_pre_tool.py:19
-- `llm_review` — defined at hooks/stop_gate.py:56 — called by: hooks/stop_gate.py:105
-- `load_files` — defined at hooks/audit.py:242 — called by: hooks/audit.py:276
-- `main` — defined at hooks/audit.py:256 — called by: hooks/audit.py:293, hooks/build_index.py:93, hooks/check_duplicates.py:67, hooks/keepalive.py:61, hooks/launch.py:45, hooks/post_edit.py:45, hooks/pre_tool.py:96, hooks/session_start.py:50, hooks/stop_gate.py:113
+- `is_dep_install` — defined at hooks/pre_tool.py:29 — called by: hooks/pre_tool.py:74, hooks/test_pre_tool.py:33, hooks/test_pre_tool.py:34, hooks/test_pre_tool.py:35, hooks/test_pre_tool.py:36, hooks/test_pre_tool.py:37, hooks/test_pre_tool.py:38, hooks/test_pre_tool.py:39, hooks/test_pre_tool.py:40
+- `llm_review` — defined at hooks/stop_gate.py:59 — called by: hooks/stop_gate.py:106
+- `load_config` — defined at hooks/config.py:23 — called by: hooks/post_edit.py:22, hooks/pre_tool.py:67, hooks/session_start.py:40, hooks/stop_gate.py:83, hooks/test_pre_tool.py:16, hooks/test_pre_tool.py:19, hooks/test_pre_tool.py:21, hooks/test_pre_tool.py:23
+- `load_files` — defined at hooks/audit.py:242 — called by: hooks/audit.py:280
+- `main` — defined at hooks/audit.py:256 — called by: hooks/audit.py:297, hooks/build_index.py:93, hooks/check_duplicates.py:67, hooks/keepalive.py:61, hooks/launch.py:54, hooks/post_edit.py:51, hooks/pre_tool.py:97, hooks/session_start.py:56, hooks/stop_gate.py:114
 - `r_abstraction` — defined at hooks/audit.py:105 — called by: no references found
 - `r_bare_except` — defined at hooks/audit.py:84 — called by: no references found
 - `r_dead` — defined at hooks/audit.py:179 — called by: no references found
@@ -31,5 +33,6 @@ Who references each function (crude name match). Read this to state blast radius
 - `r_wrapper` — defined at hooks/audit.py:161 — called by: no references found
 - `rule` — defined at hooks/audit.py:48 — called by: hooks/audit.py:58, hooks/audit.py:71, hooks/audit.py:83, hooks/audit.py:94, hooks/audit.py:104, hooks/audit.py:121, hooks/audit.py:131, hooks/audit.py:141, hooks/audit.py:160, hooks/audit.py:178, hooks/audit.py:216, hooks/audit.py:224
 - `source_files` — defined at hooks/build_index.py:23 — called by: hooks/build_index.py:76
-- `test_dep_install_detection` — defined at hooks/test_pre_tool.py:11 — called by: hooks/test_pre_tool.py:42
-- `test_duplicate_def_detection` — defined at hooks/test_pre_tool.py:22 — called by: hooks/test_pre_tool.py:43
+- `test_audit_level` — defined at hooks/test_pre_tool.py:12 — called by: hooks/test_pre_tool.py:65
+- `test_dep_install_detection` — defined at hooks/test_pre_tool.py:32 — called by: hooks/test_pre_tool.py:63
+- `test_duplicate_def_detection` — defined at hooks/test_pre_tool.py:43 — called by: hooks/test_pre_tool.py:64

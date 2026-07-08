@@ -259,6 +259,8 @@ def main() -> None:
     ap.add_argument("--list", action="store_true", help="list registered rules and exit")
     ap.add_argument("--only", default="", help="comma-separated rule ids to run")
     ap.add_argument("--skip", default="", help="comma-separated rule ids to skip")
+    ap.add_argument("--level", choices=["light", "standard", "strict"],
+                    help="light = error-severity rules only (fast); standard/strict = all rules")
     args = ap.parse_args()
 
     if args.list:
@@ -271,6 +273,8 @@ def main() -> None:
     unknown = (only | skip) - RULES.keys()
     if unknown:
         sys.exit(f"unknown rule id(s): {', '.join(unknown)} — see --list")
+    if args.level == "light":  # skip warns: they never block, so this only saves work
+        skip |= {rid for rid, (_, sev, _) in RULES.items() if sev == "warn"}
 
     root = Path(args.root).resolve()
     files = load_files(root)

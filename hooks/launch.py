@@ -22,8 +22,17 @@ def main() -> None:
 
     fable_json = root / ".claude" / "fable.json"
     fable_json.parent.mkdir(parents=True, exist_ok=True)
-    fable_json.write_text(json.dumps({"plugin_root": plugin.as_posix()}, indent=2) + "\n", encoding="utf-8")
-    print(f"  .claude/fable.json (hooks now active here; plugin_root={plugin.as_posix()})")
+    if fable_json.exists():  # preserve a repo's chosen level / flags on refresh
+        try:
+            existing_cfg = json.loads(fable_json.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            existing_cfg = {}
+    else:
+        existing_cfg = {}
+    existing_cfg["plugin_root"] = plugin.as_posix()
+    existing_cfg.setdefault("level", "standard")  # light | standard | strict; env FABLE_AUDIT_LEVEL overrides
+    fable_json.write_text(json.dumps(existing_cfg, indent=2) + "\n", encoding="utf-8")
+    print(f"  .claude/fable.json (hooks active, level={existing_cfg['level']}; plugin_root={plugin.as_posix()})")
 
     defaults = (plugin / "CLAUDE-global.md").read_text(encoding="utf-8").replace("{FABLE}", plugin.as_posix())
     claude_md = root / "CLAUDE.md"

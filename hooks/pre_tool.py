@@ -16,6 +16,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from check_duplicates import EXEMPT_NAMES  # noqa: E402
+from config import load_config  # noqa: E402
 
 APPROVAL_TOKEN = "# user-approved"
 DEF_RE = re.compile(r"^(?:async\s+)?def\s+(\w+)\s*\(", re.MULTILINE)
@@ -63,7 +64,7 @@ def main() -> None:
     except (json.JSONDecodeError, OSError):
         return
     root = Path(data.get("cwd") or Path.cwd())
-    if not (root / ".claude" / "fable.json").exists():
+    if load_config(root) is None:  # not opted in; pre-tool guards run at every level otherwise
         return
     tool = data.get("tool_name", "")
     tool_input = data.get("tool_input") or {}

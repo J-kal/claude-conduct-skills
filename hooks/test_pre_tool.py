@@ -5,7 +5,28 @@ import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+from config import audit_level, load_config  # noqa: E402
 from pre_tool import duplicate_defs, is_dep_install  # noqa: E402
+
+
+def test_audit_level():
+    import os
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        assert load_config(root) is None  # no marker -> not launched
+        (root / ".claude").mkdir()
+        (root / ".claude" / "fable.json").write_text('{"level": "strict"}', encoding="utf-8")
+        assert audit_level(load_config(root)) == "strict"  # from config
+        (root / ".claude" / "fable.json").write_text("{}", encoding="utf-8")
+        assert audit_level(load_config(root)) == "standard"  # default
+        (root / ".claude" / "fable.json").write_text("not json", encoding="utf-8")
+        assert audit_level(load_config(root)) == "standard"  # unparseable -> {} -> default
+        os.environ["FABLE_AUDIT_LEVEL"] = "light"
+        try:
+            assert audit_level({"level": "strict"}) == "light"  # env wins over config
+            assert audit_level({}) == "light"
+        finally:
+            del os.environ["FABLE_AUDIT_LEVEL"]
 
 
 def test_dep_install_detection():
@@ -41,4 +62,5 @@ def test_duplicate_def_detection():
 if __name__ == "__main__":
     test_dep_install_detection()
     test_duplicate_def_detection()
+    test_audit_level()
     print("test_pre_tool: all checks passed")
